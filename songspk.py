@@ -1,131 +1,1 @@
-from sgmllib import SGMLParser
-import urllib, urllib2
-import sys
-try:
-	import eyed3
-except:
-	print "eyed3 in not installed, Songs title will not be renamed properly, or some songs overwrite problems my occur"
-	user_in = input('Press 1 to continue or 2 to exit')
-	if user_in != 1:
-		sys.exit(0)
-
-import os
-
-
-class URLLister(SGMLParser):
-
-    def reset(self):                              
-        SGMLParser.reset(self)
-        self.urls = []
-
-    def start_a(self, attrs):                     
-        href = [v for k, v in attrs if k=='href']  
-        if href:
-            self.urls.extend(href)
-
-
-
-class SongsPK:
-	def __init__(self):
-		dirpath = os.path.expanduser('~/Desktop/songsPK_Collection')
-		if not os.path.exists(dirpath):
-			os.system('mkdir %s' %dirpath)
-		self.dirpath = dirpath
-
-	def write_MP3(self, mp3):
-		"""
-		Writes the downloaded file and renames the title.
-		"""
-		name = (mp3.geturl()).split('/')
-		folder_name = os.path.expanduser(self.dirpath+'/'+name[-3]+'/')
-		song_name = name[-2]+name[-1]
-
-		if not os.path.exists(folder_name):
-			os.system('mkdir %s' %folder_name) # Creates a directory on current users Desktop
-		#File Opening and writing
-		fullpath = folder_name+song_name
-		with open(fullpath,'w') as output:
-			while True:
-				buf = mp3.read(65536)
-				if not buf:
-					break
-				output.write(buf)
-		try:
-			audiofile = eyed3.load(fullpath)  #eyed3 module used for changing the audio file properties.
-			if audiofile.tag.title:
-				os.rename(fullpath, folder_name+audiofile.tag.title)
-		except Exception as e:
-			print "Not able to edit title"
-			pass
-
-
-	def Urlbased(self, url_datas=None):
-		visited_url = []
-		parser = URLLister()
-		if not url_datas:
-			url_datas = raw_input("Enter comma separated url strings\n")
-		url_datas = url_datas.split(',')
-		url_count = 0
-		for url_data in url_datas:
-			if url_data.startswith('www'):
-				url_data = url_data.replace('www', 'http://www')
-			usock = urllib.urlopen(url_data)
-			parser.feed(usock.read()) 
-			usock.close()      
-			parser.close()
-			url_count+=1
-			parse_url = 0
-			for url in parser.urls:
-				parse_url+=1
-				try:
-					req = urllib2.Request(url)
-					res = urllib2.urlopen(req)
-					finalurl = res.geturl()
-					if finalurl.endswith('.mp3') and finalurl not in visited_url and not finalurl.startswith('..'):
-						self.write_MP3(res)
-					visited_url.append(finalurl)
-				except Exception as e:
-					print e.message
-					continue
-				print str(int(parse_url*100)/len(parser.urls)) + "percent songs processed of url --->" + str(url_count)
-
-
-	def movieHandler(self):
-		movie_letter = raw_input('Enter Indian Movie start letter [A-Z] to get movie name list\n')
-		parser = URLLister()
-		usock = urllib.urlopen('http://songspk.info/indian_movie/%s_List.html' %movie_letter.upper())
-		parser.feed(usock.read()) 
-		usock.close()      
-		parser.close()
-		url_dict = {}
-		count = 1
-		for url in parser.urls:
-			if not url.startswith('..'):
-				url_dict[str(count)] = url
-				count+=1
-		for k ,v in url_dict.iteritems():
-			print k + '-----' + v.rstrip('.html')
-
-		movie = raw_input('Enter movie number to download all songs of it\n')
-		movie_url = "http://songspk.info/indian_movie/%s" %url_dict[movie]
-		self.Urlbased(url_datas=movie_url)
-
-
-
-
-if __name__ == "__main__":
-	handle = SongsPK()
-	print "Please select an option to proceed\n"
-	print "1 - Url based bulk song download\n"
-	print "2 - Movie name based bulk song download\n"
-	while True:
-		option = input('Enter your option {1 or 2}\n')
-		if option == 1:
-			handle.Urlbased()
-			break
-		elif option == 2:
-			handle.movieHandler()
-			break
-		else:
-			print "Invalid option"
-			continue
+"""@author : Dharmendra Kumar Verma"""from sgmllib import SGMLParserimport urllibimport urllib2import sysimport osos.system("clear && echo WELCOME ...  ")  # Helps in clearing console and greeting the usertry:    """    eyeD3 is a Python tool for working with audio files, specifically mp3 files containing ID3 metadata (i.e. song info).    To Read More Please visit - http://eyed3.nicfit.net/    """    import eyed3except:    os.system('clear && echo PLEASE WAIT ...')    print """eyed3 in not installed, Songs title will not be renamed properly, or some songs overwrite problem may occur\n                To install you can exit the script and then type \n                \t\t 'sudo pip install eyed3'    """    user_in = raw_input("Enter 'yes' to continue or 'no' to exit\n")    if user_in.lower() != 'yes':        sys.exit(0)class URLLister(SGMLParser):    """    SGMLParser which serves as the basis for parsing text files formatted in SGML (Standard Generalized Mark-up Language).    Infact, it does not provide a full SGML parser it only parses SGML insofar as it is used by HTML, and the module only    exists as a base for the htmllib module. Another HTML parser which supports XHTML and offers a somewhat different interface    is available in the HTMLParser module.    SGMLParser.reset()        Reset the instance. Loses all unprocessed data. This is called implicitly at instantiation time.    reset method overrided    """    def reset(self):        SGMLParser.reset(self)        self.urls = []    def start_a(self, attrs):        href = [v for k, v in attrs if k == 'href']        if href:            self.urls.extend(href)class SongsPK():    VERSION = 1.1    DIRPATH = os.path.expanduser('~/Desktop/songsPK_Collection')    def __init__(self):        print "Please select an option to proceed\n"        print "1 - Url based bulk song download\n"        print "2 - Movie name based bulk song download\n"        while True:            try:                option = input('Enter your option {1 or 2}\n')                os.system('clear')            except Exception as e:                    print e.message  # To display the error message in console                    continue            if option == 1:                self.urlbased()                break            elif option == 2:                self.moviehandler()                break            else:                print "Invalid option"                continue        os.system('clear && echo PLEASE WAIT ...')        if not os.path.exists(self.DIRPATH):            os.system('mkdir %s' % self.DIRPATH)    def url_opener(self, url_data):        """        Common function for  getting url_data from a passed url and return the object of class URLLister(SGMLParser)        """        parser = URLLister()        usock = urllib.urlopen(url_data)        parser.feed(usock.read())        usock.close()        parser.close()        return parser    def write_mp3(self, mp3):        """        Writes the downloaded file and renames the title.        """        name = (mp3.geturl()).split('/')        folder_name = os.path.expanduser(self.DIRPATH+'/'+name[-2]+'/')        song_name = name[-2]+name[-1]        if not os.path.exists(folder_name):            os.system('mkdir %s' % folder_name)  # Creates a directory on current users Desktop        #File Opening and writing        fullpath = folder_name+song_name        with open(fullpath, 'w') as output:            while True:                buf = mp3.read(65536)  # Fixed the Buffer size                if not buf:                    break                output.write(buf)        try:            audiofile = eyed3.load(fullpath)  # eyed3 module used for changing the audio file properties.            if audiofile.tag.title:                os.rename(fullpath, folder_name+audiofile.tag.title) # Renaming the downloaded file title        except:            print "Not able to edit title"            pass    def urlbased(self, url_datas=None):        """        Prepares the url and then download the mp3 file. To write the file in Disk it depends on write_mp3 function        """        visited_url = []        if not url_datas:            url_datas = raw_input("Enter comma separated url strings\n")            os.system('clear && echo PLEASE WAIT ...')        url_datas = url_datas.split(',')        url_count = 0        for url_data in url_datas:            if url_data.startswith('www'):                url_data = url_data.replace('www', 'http://www')            parser = self.url_opener(url_data)            url_count += 1            parse_url = 0            for url in parser.urls:                parse_url += 1                try:                    res = urllib2.urlopen(urllib2.Request(url))  # Resolve the redirects and gets the song Object                    finalurl = res.geturl()                    # Now check the function                    if finalurl.endswith('.mp3') and finalurl not in visited_url and not finalurl.startswith('..'):                        self.write_mp3(res)  # call to write mp3 file in Disk                    visited_url.append(finalurl)                except Exception as e:                    print e.message                    continue                print str(int(parse_url*100)/len(parser.urls)) + "percent songs processed of url --->" + str(url_count)    def moviehandler(self):        """            Get Movie name list and allow user to enter multiple movie number to download songs from all the movies in one hit.            STEPS- Enter starting letter of any indian Movie                   Select your movie number from the displayed list                   Files will be downloaded on your desktop in a folder named songsPK_Collection.Movie Name            os command mainly has been used for clearing the mess        """        movie_letter = raw_input('Enter Indian Movie start letter [A-Z] to get movie name list\n')        os.system('clear && echo PLEASE WAIT ...')        url_data = "http://songspk.info/indian_movie/%s_List.html" % movie_letter.upper()        parser = self.url_opener(url_data)        url_dict = {}        count = 1        for url in parser.urls:            if not url.startswith('..'):                url_dict[str(count)] = url                count += 1        for k, v in url_dict.iteritems():            print k + '-----' + v.rstrip('.html')        movie = raw_input('Enter comma separated movie number to download all songs of movies\n')        movie = movie.split(',')        os.system('clear && echo PLEASE WAIT ...')        movie_url = ''        for no in movie:            movie_url += "http://songspk.info/indian_movie/%s" % url_dict[no] + ','        movie_url = movie_url.rstrip(',')        self.urlbased(url_datas=movie_url)if __name__ == "__main__":    SongsPK()
