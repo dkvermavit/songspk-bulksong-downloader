@@ -9,23 +9,21 @@
 
 import subprocess
 import sys
-from utils import url_resolver
 
 
 class Player(object):
-
     @staticmethod
     def _check_mpg123():
         try:
-            subprocess.call('mpg123 --version')
+            subprocess.call(['mpg123', '--version'])
         except OSError:
-            print 10*"#\n"+"Please install mpg123 to enable play mode"+"\n#"*10
+            print "Please install mpg123 to enable play mode"
             sys.exit()
 
     @staticmethod
     def play(song_url):
         try:
-            subprocess.call("mpg123 %s" %url_resolver(song_url)[1])
+            subprocess.call(['mpg123', song_url])
         except:
             print "Failed in playing from url %s" %song_url
 
